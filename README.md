@@ -6,7 +6,7 @@ In the folder eyecontrol you find the processing.org sketch 'eyecontrol.pde' and
 
 The gamecontrolplus library is installed (through the library manager) to allow control by a Logitech gamepad. Wheb the application is first started, a custom mapping has to be made between controller buttons and software inputs. This mapping is stored as plain-txt in the file 'gamepad_eyes':
 
-'''
+``` 
 Eyes controllernext
 XPOS	Pupil X 	3	SLIDER	z	0	1.0	0.15
 YPOS	Pupil Y 	3	SLIDER	rz	0	1.0	0.15
@@ -19,7 +19,7 @@ RT	button RT	1	BUTTON	5	0	0.0	0.0
 RS	button RS	1	BUTTON	7	0	0.0	0.0
 START	button START	1	BUTTON	9	0	0.0	0.0
 BACK	button BACK	1	BUTTON	8	0	0.0	0.0
-'''
+```
 
 #### todo
 Desired functions to add:
