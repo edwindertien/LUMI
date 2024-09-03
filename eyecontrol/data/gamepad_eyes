@@ -10,3 +10,5 @@ RT	button RT	1	BUTTON	5	0	0.0	0.0
 RS	button RS	1	BUTTON	7	0	0.0	0.0
 START	button START	1	BUTTON	9	0	0.0	0.0
 BACK	button BACK	1	BUTTON	8	0	0.0	0.0
+POV	button POV	2	HAT	cooliehat: pov	0	0.0	0.0
+DILATE	button DILATE	1	BUTTON	4	0	0.0	0.0
