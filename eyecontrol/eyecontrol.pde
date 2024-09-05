@@ -41,11 +41,11 @@ String[] imageNames = {
    "lumi-battery.jpg",
    "lumi-classified.jpg",
    "lumi-map.jpg",
-   "lumi-noconnection.jpg",
+   "lumi-route.jpg",
    "lumi-ok.jpg",
    "lumi-wait.jpg",
    "lumi-warning.jpg",
-   "lumi-weather.jpg"
+   "lumi-steps.jpg"
 };
 
 PImage[] images = new PImage[8];
