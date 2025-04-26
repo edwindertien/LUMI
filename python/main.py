@@ -1,134 +1,137 @@
-# import pygame
-# import os
-# import sys
-
-# # Initialize pygame
-# pygame.init()
-# pygame.mixer.init()
-
-# # Constants
-# screen_width = 192
-# screen_height = 80
-# FPS = 60
-
-# def draw_eyes(screen, eye_x, eye_y, pupil_size, blink):
-#     # Eye size
-#     eye_radius = eye_size // 2
-    
-#     # Draw the eyes
-#     pygame.draw.circle(screen, (255, 255, 255), (eye_x, eye_y), eye_radius)  # Left eye
-#     pygame.draw.circle(screen, (255, 255, 255), (eye_x + screen_width // 2, eye_y), eye_radius)  # Right eye
-    
-#     # Draw the pupils
-#     pygame.draw.circle(screen, (0, 0, 0), (eye_x, eye_y), pupil_size)  # Left pupil
-#     pygame.draw.circle(screen, (0, 0, 0), (eye_x + screen_width // 2, eye_y), pupil_size)  # Right pupil
-
-#     # Blink effect
-#     if blink:
-#         pygame.draw.rect(screen, (255, 255, 255), pygame.Rect(eye_x - eye_radius, eye_y - eye_radius, eye_radius * 2, eye_radius))  # Upper lid
-#         pygame.draw.rect(screen, (255, 255, 255), pygame.Rect(eye_x - eye_radius, eye_y, eye_radius * 2, eye_radius))  # Lower lid
-
-# # Setup display
-# screen = pygame.display.set_mode((screen_width * 2, screen_height), pygame.FULLSCREEN)
-# pygame.display.set_caption("LUMI eye control")
-
-# # Load resources from 'data' folder
-# DATA_DIR = os.path.join(os.path.dirname(__file__), "data")
-
-# # Sound files
-# sound_files = [
-#     "lumi-alarm.mp3", "lumi-yes.mp3", "lumi-yes1.mp3", "lumi-yes2.mp3",
-#     "lumi-no.mp3", "lumi-no2.mp3", "lumi-startup.mp3", "lumi-shutdown.mp3"
-# ]
-# sounds = [pygame.mixer.Sound(os.path.join(DATA_DIR, f)) for f in sound_files]
-
-# # Image files
-# image_files = [
-#     "lumi-battery.jpg", "lumi-classified.jpg", "lumi-map.jpg", "lumi-route.jpg",
-#     "lumi-noconnection.jpg", "lumi-ok.jpg", "lumi-weather.jpg", "lumi-steps.jpg",
-#     "lumi-warning.jpg"
-# ]
-# images = [pygame.image.load(os.path.join(DATA_DIR, f)) for f in image_files]
-
-# # Joystick initialization
-# pygame.joystick.init()
-# joystick = None
-# if pygame.joystick.get_count() > 0:
-#     joystick = pygame.joystick.Joystick(0)
-#     joystick.init()
-#     print("Joystick initialized:", joystick.get_name())
-# else:
-#     print("No joystick found!")
-
-# # Game loop
-# running = True
-# blink = False
-# pupil_size = eye_size // 3
-# eye_x = screen_width // 4
-# eye_y = screen_height // 2
-
-# # Main loop
-# clock = pygame.time.Clock()
-# running = True
-# while running:
-#     screen.fill((127, 127, 127))  # Background color
-
-#     for event in pygame.event.get():
-#         if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
-#             running = False
-
-#     # TODO: Add joystick input handling and eye drawing here
-#         if event.type == pygame.JOYAXISMOTION:
-#             x_pos = joystick.get_axis(0)
-#             y_pos = joystick.get_axis(1)
-#             eye_x = int(x_pos * screen_width // 2 + screen_width // 4)  # Scale to screen size
-#             eye_y = int(y_pos * screen_height // 2 + screen_height // 2)
-        
-#         if event.type == pygame.JOYBUTTONDOWN:
-#             if joystick.get_button(0):  # Button A - toggle blink
-#                 blink = not blink
-    
-#     # Fill the screen with a background color
-#     screen.fill((127, 127, 127))
-    
-#     # Draw the eyes
-#     draw_eyes(screen, eye_x, eye_y, pupil_size, blink)
-
-#     pygame.display.flip()
-#     clock.tick(FPS)
-
-# pygame.quit()
-# sys.exit()
 import pygame
 import sys
+import random
 
-# Initialize pygame and joystick module
+# Initialize
 pygame.init()
+pygame.mixer.init()
 pygame.joystick.init()
 
-# Check for joysticks
-if pygame.joystick.get_count() == 0:
-    print("No joysticks connected.")
-    pygame.quit()
+# Screen setup
+screen_width, screen_height = 192, 80
+screen = pygame.display.set_mode((screen_width, screen_height))
+# screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
+
+pygame.display.set_caption("LUMI eye control")
+
+clock = pygame.time.Clock()
+
+# Colors
+WHITE = (255, 255, 255)
+BACKGROUND = (127, 127, 127)
+EYE_COLOR = (0, 255, 100)
+
+# Joystick setup
+if pygame.joystick.get_count() > 0:
+    joystick = pygame.joystick.Joystick(0)
+    joystick.init()
+else:
+    print("No joystick found!")
     sys.exit()
 
-# Connect to the first joystick
-joystick = pygame.joystick.Joystick(0)
-joystick.init()
+# Eye parameters
+eye_size = 5 * screen_height // 8
+pupil_size = eye_size * 0.55
+base_pupil_size = eye_size * 0.55
+min_pupil_size = eye_size * 0.4
+max_pupil_size = eye_size * 0.7
 
-print(f"Detected joystick: {joystick.get_name()} with {joystick.get_numaxes()} axes, {joystick.get_numbuttons()} buttons")
+pupil_x = screen_width // 4
+pupil_y = screen_height // 2
 
-# Main loop to print input events
-try:
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.JOYAXISMOTION:
-                print(f"Axis {event.axis} moved to {event.value:.2f}")
-            elif event.type == pygame.JOYBUTTONDOWN:
-                print(f"Button {event.button} pressed")
-            elif event.type == pygame.JOYBUTTONUP:
-                print(f"Button {event.button} released")
-except KeyboardInterrupt:
-    print("Exiting...")
+prev_pupil_x = pupil_x
+prev_pupil_y = pupil_y
+
+eye_offset_x = 0
+eye_offset_y = 0
+
+blink = False
+blink_timer = 0
+next_blink_time = random.randint(4000, 15000)
+blink_duration = 0
+
+last_eye_move_time = 0
+eye_move_threshold = 200  # ms
+is_focusing = False
+
+def draw_eyes(x, y, blink_now):
+    # Left Eye
+    pygame.draw.ellipse(screen, EYE_COLOR, (x - eye_size//2, y - eye_size//2, eye_size, eye_size))
+    # Right Eye
+    pygame.draw.ellipse(screen, EYE_COLOR, (x + screen_width//2 - eye_size//2, y - eye_size//2, eye_size, eye_size))
+    # Pupils
+    pygame.draw.ellipse(screen, (0, 0, 0), (x - pupil_size//2, y - pupil_size//2, pupil_size, pupil_size))
+    pygame.draw.ellipse(screen, (0, 0, 0), (x + screen_width//2 - pupil_size//2, y - pupil_size//2, pupil_size, pupil_size))
+
+# Main loop
+running = True
+start_time = pygame.time.get_ticks()
+
+while running:
+    screen.fill(BACKGROUND)
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    time_now = pygame.time.get_ticks()
+
+    # Joystick input
+    target_x = pupil_x
+    target_y = pupil_y
+    dilate = False
+
+    if joystick.get_numaxes() >= 2:
+        x_axis = joystick.get_axis(0)
+        y_axis = joystick.get_axis(1)
+        target_x = int((x_axis + 1) * screen_width / 4)
+        target_y = int((y_axis + 1) * screen_height / 2)
+
+    if joystick.get_numbuttons() > 0:
+        dilate = joystick.get_button(0)  # Button A for DILATE (adjust if needed)
+
+    # Smooth eye movement
+    pupil_x = 0.9 * pupil_x + 0.1 * (target_x + eye_offset_x)
+    pupil_y = 0.9 * pupil_y + 0.1 * (target_y + eye_offset_y)
+
+    # Focus detection
+    if abs(pupil_x - prev_pupil_x) > 0.5 or abs(pupil_y - prev_pupil_y) > 0.5:
+        last_eye_move_time = time_now
+        is_focusing = False
+    else:
+        if time_now - last_eye_move_time > eye_move_threshold:
+            is_focusing = True
+
+    prev_pupil_x = pupil_x
+    prev_pupil_y = pupil_y
+
+    # Random blinking
+    if time_now - blink_timer > next_blink_time:
+        blink_timer = time_now
+        next_blink_time = random.randint(4000, 15000)
+        blink_duration = random.randint(5, 20)
+
+    if blink_duration > 0:
+        blink_duration -= 1
+        blink = True
+    else:
+        blink = False
+
+    # Pupil size adjustment
+    if dilate:
+        pupil_size += (max_pupil_size - pupil_size) * 0.1
+    elif is_focusing:
+        pupil_size += (min_pupil_size - pupil_size) * 0.05
+    else:
+        pupil_size += (base_pupil_size - pupil_size) * 0.05
+
+    pupil_size = max(min_pupil_size, min(max_pupil_size, pupil_size))
+
+    # Draw
+    draw_eyes(int(pupil_x), int(pupil_y), blink)
+
+    pygame.display.flip()
+    clock.tick(60)
 
 pygame.quit()
+sys.exit()
