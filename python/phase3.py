@@ -20,6 +20,7 @@ clock = pygame.time.Clock()
 WHITE = (255, 255, 255)
 BACKGROUND = (127, 127, 127)
 EYE_COLOR = (0, 255, 100)
+current_pupil_color = (0, 255, 100)  # Default greenish color
 
 # Joystick setup
 if pygame.joystick.get_count() > 0:
@@ -82,9 +83,9 @@ image_number = 0  # 0 = no image, 1-8 = images
 
 def draw_eyes(x, y, blink_now):
     # Left Eye
-    pygame.draw.ellipse(screen, EYE_COLOR, (x - eye_size//2, y - eye_size//2, eye_size, eye_size))
+    pygame.draw.ellipse(screen, current_pupil_color, (x - eye_size//2, y - eye_size//2, eye_size, eye_size))
     # Right Eye
-    pygame.draw.ellipse(screen, EYE_COLOR, (x + screen_width//2 - eye_size//2, y - eye_size//2, eye_size, eye_size))
+    pygame.draw.ellipse(screen, current_pupil_color, (x + screen_width//2 - eye_size//2, y - eye_size//2, eye_size, eye_size))
     # Pupils
     pygame.draw.ellipse(screen, (0, 0, 0), (x - pupil_size//2, y - pupil_size//2, pupil_size, pupil_size))
     pygame.draw.ellipse(screen, (0, 0, 0), (x + screen_width//2 - pupil_size//2, y - pupil_size//2, pupil_size, pupil_size))
@@ -123,10 +124,23 @@ while running:
         target_x = int((x_axis + 1) * screen_width / 4)
         target_y = int((y_axis + 1) * screen_height / 2)
 
-    if joystick.get_numbuttons() > 0:
-        dilate = joystick.get_button(0)  # Button A for DILATE
-        if joystick.get_button(6):  # 6 is usually the BACK button
+    if event.type == pygame.JOYBUTTONDOWN:
+        dilate = joystick.get_button(10)
+        if joystick.get_button(0):  # Button A
+            current_pupil_color = (0, 255, 0)  # Bright green
+        if joystick.get_button(1):  # Button B
+            current_pupil_color = (255, 0, 0)  # Red
+        if joystick.get_button(2):  # Button X
+            current_pupil_color = (0, 0, 255)  # Blue
+        if joystick.get_button(3):  # Button Y
+            current_pupil_color = (255, 255, 0)  # Yellow
+        if joystick.get_button(8):  
+            print("Back button pressed. Exiting...")
             running = False
+
+
+   #if joystick.get_numbuttons() > 0:
+
     # Read POV hat
     if joystick.get_numhats() > 0:
         hat_x, hat_y = joystick.get_hat(0)
