@@ -103,11 +103,11 @@ while running:
     screen.fill(BACKGROUND)
 
     for event in pygame.event.get():
-    if event.type == pygame.QUIT:
-        running = False
-    elif event.type == pygame.KEYDOWN:
-        if event.key == pygame.K_ESCAPE:
+        if event.type == pygame.QUIT:
             running = False
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
+                running = False
 
     time_now = pygame.time.get_ticks()
 
@@ -125,7 +125,7 @@ while running:
     if joystick.get_numbuttons() > 0:
         dilate = joystick.get_button(0)  # Button A for DILATE
         if joystick.get_button(6):  # 6 is usually the BACK button
-        running = False
+            running = False
     # Read POV hat
     if joystick.get_numhats() > 0:
         hat_x, hat_y = joystick.get_hat(0)
