@@ -16,6 +16,11 @@ pygame.display.set_caption("LUMI eye control")
 
 clock = pygame.time.Clock()
 
+blink = False
+blink_timer = 0
+next_blink_time = random.randint(4000, 15000)  # Random interval between blinks (ms)
+blink_duration = 0  # Duration of a blink (frames)
+
 # Colors
 WHITE = (255, 255, 255)
 BACKGROUND = (127, 127, 127)
@@ -125,18 +130,21 @@ while running:
         target_y = int((y_axis + 1) * screen_height / 2)
 
     if event.type == pygame.JOYBUTTONDOWN:
-        dilate = joystick.get_button(10)
-        if joystick.get_button(0):  # Button A
-            current_pupil_color = (0, 255, 0)  # Bright green
-        if joystick.get_button(1):  # Button B
-            current_pupil_color = (255, 0, 0)  # Red
-        if joystick.get_button(2):  # Button X
-            current_pupil_color = (0, 0, 255)  # Blue
-        if joystick.get_button(3):  # Button Y
-            current_pupil_color = (255, 255, 0)  # Yellow
-        if joystick.get_button(8):  
+        if event.button == 0:
+            current_pupil_color = (0, 255, 0)
+        elif event.button == 1:
+            current_pupil_color = (255, 0, 0)
+        elif event.button == 2:
+            current_pupil_color = (0, 0, 255)
+        elif event.button == 3:
+            current_pupil_color = (255, 255, 0)
+        elif event.button == 8:
             print("Back button pressed. Exiting...")
             running = False
+        elif event.button == 10:  # DILATE
+            dilate = True
+        elif event.button == 5:  # EYELID button (choose correct mapping later)
+            blink = True  # Manual blink
 
 
    #if joystick.get_numbuttons() > 0:
