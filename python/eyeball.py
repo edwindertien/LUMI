@@ -41,7 +41,6 @@ def draw_eyes_and_eyelids():
     pygame.draw.ellipse(screen, PUPIL_COLOR, (pupil_x - pupil_size//2, pupil_y - pupil_size//2, pupil_size, pupil_size))
     pygame.draw.ellipse(screen, PUPIL_COLOR, (pupil_x + screen_width//2 - pupil_size//2, pupil_y - pupil_size//2, pupil_size, pupil_size))
 
-    # Draw eyelids dynamically following the pupil position
     # Left Eyelid (polygon)
     left_eyelid_points = [
         (pupil_x - eye_size//2, pupil_y - eye_size//2 + eyelid_height),  # Top left
@@ -50,7 +49,7 @@ def draw_eyes_and_eyelids():
         (pupil_x - eye_size//2, pupil_y - eye_size//2 - eyelid_offset)   # Bottom left
     ]
     pygame.draw.polygon(screen, EYELID_COLOR, left_eyelid_points)
-    
+
     # Right Eyelid (polygon)
     right_eyelid_points = [
         (pupil_x + screen_width//2 - eye_size//2, pupil_y - eye_size//2 + eyelid_height),  # Top right
@@ -59,6 +58,13 @@ def draw_eyes_and_eyelids():
         (pupil_x + screen_width//2 - eye_size//2, pupil_y - eye_size//2 - eyelid_offset)   # Bottom right
     ]
     pygame.draw.polygon(screen, EYELID_COLOR, right_eyelid_points)
+
+    # Debugging: Draw the points of the eyelids for visualization
+    for point in left_eyelid_points:
+        pygame.draw.circle(screen, (255, 0, 0), point, 3)  # Draw red dots at the polygon points
+
+    for point in right_eyelid_points:
+        pygame.draw.circle(screen, (255, 0, 0), point, 3)  # Draw red dots at the polygon points
 
 # Main loop
 running = True
