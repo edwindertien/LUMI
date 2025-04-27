@@ -1,148 +1,243 @@
 import pygame
-import random
 import sys
-import time
-from pygame.locals import QUIT, KEYDOWN, K_ESCAPE
+import random
+import os
 
-# Initialize pygame
+# Initialize
 pygame.init()
+pygame.mixer.init()
+pygame.joystick.init()
 
-# Setup display
-screenWidth, screenHeight = 192, 80
-screen = pygame.display.set_mode((screenWidth, screenHeight))
-pygame.display.set_caption("LUMI Eyes Control")
+# Screen setup
+screen_width, screen_height = 192, 80
+screen = pygame.display.set_mode((screen_width, screen_height))
+#screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
+pygame.display.set_caption("LUMI eye control")
+
+clock = pygame.time.Clock()
+
+blink = False
+blink_timer = 0
+next_blink_time = random.randint(4000, 15000)  # Random interval between blinks (ms)
+blink_duration = 0  # Duration of a blink (frames)
 
 # Colors
-BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
-GREEN = (0, 255, 0)
-RED = (255, 0, 0)
-BLUE = (0, 0, 255)
-YELLOW = (255, 255, 0)
+BLACK = (0,0,0)
+BACKGROUND = (127, 127, 127)
+EYE_COLOR = (0, 255, 100)
+current_pupil_color = (0, 255, 100)  # Default greenish color
 
-# Initialize joystick
-joystick = pygame.joystick.Joystick(0)
-joystick.init()
+# Joystick setup
+if pygame.joystick.get_count() > 0:
+    joystick = pygame.joystick.Joystick(0)
+    joystick.init()
+else:
+    print("No joystick found!")
+    sys.exit()
+
+# Load images
+image_folder = "data"
+image_names = [
+    "lumi-battery.jpg",
+    "lumi-classified.jpg",
+    "lumi-map.jpg",
+    "lumi-route.jpg",
+    "lumi-noconnection.jpg",
+    "lumi-ok.jpg",
+    "lumi-weather.jpg",
+    "lumi-steps.jpg",
+    "lumi-warning.jpg"
+]
+images = []
+for name in image_names:
+    path = os.path.join(image_folder, name)
+    if os.path.exists(path):
+        img = pygame.image.load(path).convert()
+        images.append(img)
+    else:
+        print(f"Image not found: {path}")
+        images.append(None)
 
 # Eye parameters
-eyeSize = 5 * screenHeight / 8
-upperValue = eyeSize / 2
+eye_size = 5 * screen_height // 8
+pupil_size = eye_size * 0.55
+base_pupil_size = eye_size * 0.55
+min_pupil_size = eye_size * 0.4
+max_pupil_size = eye_size * 0.7
+
+pupil_x = screen_width // 4
+pupil_y = screen_height // 2
+
+prev_pupil_x = pupil_x
+prev_pupil_y = pupil_y
+
+eye_offset_x = 0
+eye_offset_y = 0
+
 blink = False
-dilate = False
-pupilPosX = pupilPosY = 0
-pupilSize = 0.55 * eyeSize
-current_pupil_color = WHITE
+blink_timer = 0
+next_blink_time = random.randint(4000, 15000)
+blink_duration = 0
 
-# Blink parameters
-blinkTimer = 0
-nextBlinkTime = random.randint(4000, 15000)
-blinkDuration = random.randint(5, 20)
+last_eye_move_time = 0
+eye_move_threshold = 200  # ms
+is_focusing = False
 
-# Pupil movement smoothing
-prevEyeX, prevEyeY = 0, 0
-eyeMoveThreshold = 200  # ms to consider eyes as focused
-lastEyeMoveTime = 0
-isFocusing = False
+# POV control
+image_number = 0  # 0 = no image, 1-8 = images
 
-# Eyelid control
-blinkSpeed = 0.1
-eyelidPosition = 0
-eyelidSpeed = 0.05
-
-# Main loop flag
-running = True
-
-def draw_eyes(x, y, blink):
-    global eyelidPosition
+def draw_eyes(x, y, blink_now):
+    # Left Eye
+    pygame.draw.ellipse(screen, current_pupil_color, (x - eye_size//2, y - eye_size//2, eye_size, eye_size))
+    # Right Eye
+    pygame.draw.ellipse(screen, current_pupil_color, (x + screen_width//2 - eye_size//2, y - eye_size//2, eye_size, eye_size))
     
-    lidMid = screenHeight / 2
-    dLid = 0
-    # Clamp pupil position to stay inside the eye boundaries
-    if y > screenHeight:
-        y = screenHeight
-    if y < 0:
-        y = 0
-    if x < eyeSize / 2:
-        x = eyeSize / 2
-    if x > (screenWidth / 2 - eyeSize / 2):
-        x = screenWidth / 2 - eyeSize / 2
+    # Pupils
+    pygame.draw.ellipse(screen, (0, 0, 0), (x - pupil_size//2, y - pupil_size//2, pupil_size, pupil_size))
+    pygame.draw.ellipse(screen, (0, 0, 0), (x + screen_width//2 - pupil_size//2, y - pupil_size//2, pupil_size, pupil_size))
+
+    # Draw eyelids dynamically following the pupil position
+    eyelid_height = 5  # Control the eyelid curvature
     
-    # Draw the eye (left and right)
-    pygame.draw.circle(screen, current_pupil_color, (int(x), int(y)), int(pupilSize))
-    pygame.draw.circle(screen, current_pupil_color, (int(x + screenWidth / 2), int(y)), int(pupilSize))
-
-    # Eyelid logic: smooth blink and pupil-based eyelid shape
-    if blink:
-        eyelidPosition += blinkSpeed
-    else:
-        eyelidPosition -= blinkSpeed
+    # Left Eyelid
+    pygame.draw.polygon(screen, BLACK, [
+        (x - eye_size//2, y - eye_size//2 + eyelid_height),
+        (x + eye_size//2, y - eye_size//2 + eyelid_height),
+        (x + eye_size//2, y - eye_size//2 - eyelid_height),
+        (x - eye_size//2, y - eye_size//2 - eyelid_height)
+    ])
     
-    eyelidPosition = max(0, min(eyeSize / 2, eyelidPosition))
+    # Right Eyelid
+    pygame.draw.polygon(screen, BLACK, [
+        (x + screen_width//2 - eye_size//2, y - eye_size//2 + eyelid_height),
+        (x + screen_width//2 + eye_size//2, y - eye_size//2 + eyelid_height),
+        (x + screen_width//2 + eye_size//2, y - eye_size//2 - eyelid_height),
+        (x + screen_width//2 - eye_size//2, y - eye_size//2 - eyelid_height)
+    ])
 
-    # Left eyelid top and bottom
-    pygame.draw.polygon(screen, BLACK, [(x - eyeSize / 2, y - eyeSize / 2 + eyelidPosition),
-                                        (x + eyeSize / 2, y - eyeSize / 2 + eyelidPosition),
-                                        (x + eyeSize / 2, y + eyeSize / 2 - eyelidPosition),
-                                        (x - eyeSize / 2, y + eyeSize / 2 - eyelidPosition)])
-
-    # Right eyelid top and bottom
-    pygame.draw.polygon(screen, BLACK, [(x + screenWidth / 2 - eyeSize / 2, y - eyeSize / 2 + eyelidPosition),
-                                        (x + screenWidth / 2 + eyeSize / 2, y - eyeSize / 2 + eyelidPosition),
-                                        (x + screenWidth / 2 + eyeSize / 2, y + eyeSize / 2 - eyelidPosition),
-                                        (x + screenWidth / 2 - eyeSize / 2, y + eyeSize / 2 - eyelidPosition)])
+def draw_image(img):
+    if img is None:
+        return
+    img = pygame.transform.scale(img, (screen_width // 2, screen_height))
+    screen.blit(img, (0, 0))
+    screen.blit(img, (screen_width // 2, 0))
 
 # Main loop
+running = True
+start_time = pygame.time.get_ticks()
+
 while running:
-    screen.fill(WHITE)
-    
+    screen.fill(BACKGROUND)
+
     for event in pygame.event.get():
-        if event.type == QUIT:
+        if event.type == pygame.QUIT:
             running = False
-        
-        if event.type == pygame.JOYBUTTONDOWN:
-            dilate = joystick.get_button(10)
-            if joystick.get_button(0):  # Button A
-                current_pupil_color = GREEN  # Bright green
-            if joystick.get_button(1):  # Button B
-                current_pupil_color = RED  # Red
-            if joystick.get_button(2):  # Button X
-                current_pupil_color = BLUE  # Blue
-            if joystick.get_button(3):  # Button Y
-                current_pupil_color = YELLOW  # Yellow
-            if joystick.get_button(8):  # Back button
-                print("Back button pressed. Exiting...")
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
                 running = False
 
-    # Get joystick inputs for pupil position
-    pupilPosX = joystick.get_axis(0) * (screenWidth / 2)  # Left/Right
-    pupilPosY = joystick.get_axis(1) * screenHeight  # Up/Down
+    time_now = pygame.time.get_ticks()
 
-    # Blink control: periodically trigger blink
-    if time.time() * 1000 > blinkTimer + nextBlinkTime:
-        blinkTimer = time.time() * 1000
-        nextBlinkTime = random.randint(4000, 15000)
-        blinkDuration = random.randint(5, 20)
+    # Joystick input
+    target_x = pupil_x
+    target_y = pupil_y
+    dilate = False
 
-    if blinkDuration > 0:
+    if joystick.get_numaxes() >= 2:
+        x_axis = joystick.get_axis(0)
+        y_axis = joystick.get_axis(1)
+        target_x = int((x_axis + 1) * screen_width / 4)
+        target_y = int((y_axis + 1) * screen_height / 2)
+
+    if event.type == pygame.JOYBUTTONDOWN:
+        if event.button == 0:
+            current_pupil_color = (0, 255, 0)
+        elif event.button == 1:
+            current_pupil_color = (255, 0, 0)
+        elif event.button == 2:
+            current_pupil_color = (0, 0, 255)
+        elif event.button == 3:
+            current_pupil_color = (255, 255, 0)
+        elif event.button == 8:
+            print("Back button pressed. Exiting...")
+            running = False
+        elif event.button == 10:  # DILATE
+            dilate = True
+        elif event.button == 5:  # EYELID button (choose correct mapping later)
+            blink = True  # Manual blink
+
+   #if joystick.get_numbuttons() > 0:
+
+    # Read POV hat
+    if joystick.get_numhats() > 0:
+        hat_x, hat_y = joystick.get_hat(0)
+        # Map to image numbers
+        if (hat_x, hat_y) == (0, 1):
+            image_number = 1
+        elif (hat_x, hat_y) == (1, 1):
+            image_number = 2
+        elif (hat_x, hat_y) == (1, 0):
+            image_number = 3
+        elif (hat_x, hat_y) == (1, -1):
+            image_number = 4
+        elif (hat_x, hat_y) == (0, -1):
+            image_number = 5
+        elif (hat_x, hat_y) == (-1, -1):
+            image_number = 6
+        elif (hat_x, hat_y) == (-1, 0):
+            image_number = 7
+        elif (hat_x, hat_y) == (-1, 1):
+            image_number = 8
+        else:
+            image_number = 0
+
+    # Smooth eye movement
+    pupil_x = 0.9 * pupil_x + 0.1 * (target_x + eye_offset_x)
+    pupil_y = 0.9 * pupil_y + 0.1 * (target_y + eye_offset_y)
+
+    # Focus detection
+    if abs(pupil_x - prev_pupil_x) > 0.5 or abs(pupil_y - prev_pupil_y) > 0.5:
+        last_eye_move_time = time_now
+        is_focusing = False
+    else:
+        if time_now - last_eye_move_time > eye_move_threshold:
+            is_focusing = True
+
+    prev_pupil_x = pupil_x
+    prev_pupil_y = pupil_y
+
+    # Random blinking
+    if time_now - blink_timer > next_blink_time:
+        blink_timer = time_now
+        next_blink_time = random.randint(4000, 15000)
+        blink_duration = random.randint(5, 20)
+
+    if blink_duration > 0:
+        blink_duration -= 1
         blink = True
-        blinkDuration -= 1
     else:
         blink = False
 
-    # Smooth eye movement
-    eyeX = pupilPosX * 0.10 + prevEyeX * 0.90
-    eyeY = pupilPosY * 0.10 + prevEyeY * 0.90
+    # Pupil size adjustment
+    if dilate:
+        pupil_size += (max_pupil_size - pupil_size) * 0.1
+    elif is_focusing:
+        pupil_size += (min_pupil_size - pupil_size) * 0.05
+    else:
+        pupil_size += (base_pupil_size - pupil_size) * 0.05
 
-    prevEyeX = eyeX
-    prevEyeY = eyeY
+    pupil_size = max(min_pupil_size, min(max_pupil_size, pupil_size))
 
-    # Draw eyes with the current pupil color and eyelid shape
-    draw_eyes(eyeX, eyeY, blink)
-    
-    # Refresh display
+    # Draw
+    if image_number == 0:
+        draw_eyes(int(pupil_x), int(pupil_y), blink)
+    else:
+        if 1 <= image_number <= len(images):
+            draw_image(images[image_number - 1])
+
     pygame.display.flip()
-    pygame.time.wait(10)
+    clock.tick(60)
 
-# Quit pygame
 pygame.quit()
 sys.exit()
