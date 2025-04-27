@@ -11,7 +11,6 @@ pygame.joystick.init()
 # Screen setup
 screen_width, screen_height = 192, 80
 screen = pygame.display.set_mode((screen_width, screen_height))
-#screen = pygame.display.set_mode((screen_width, screen_height), pygame.FULLSCREEN)
 pygame.display.set_caption("LUMI eye control")
 
 clock = pygame.time.Clock()
@@ -23,7 +22,6 @@ blink_duration = 0  # Duration of a blink (frames)
 
 # Colors
 WHITE = (255, 255, 255)
-BLACK = (0,0,0)
 BACKGROUND = (127, 127, 127)
 EYE_COLOR = (0, 255, 100)
 current_pupil_color = (0, 255, 100)  # Default greenish color
@@ -98,22 +96,22 @@ def draw_eyes(x, y, blink_now):
     pygame.draw.ellipse(screen, (0, 0, 0), (x + screen_width//2 - pupil_size//2, y - pupil_size//2, pupil_size, pupil_size))
 
     # Draw eyelids dynamically following the pupil position
-    eyelid_height = 5  # Control the eyelid curvature
-    
-    # Left Eyelid
-    pygame.draw.polygon(screen, BLACK, [
-        (x - eye_size//2, y - eye_size//2 + eyelid_height),
-        (x + eye_size//2, y - eye_size//2 + eyelid_height),
-        (x + eye_size//2, y - eye_size//2 - eyelid_height),
-        (x - eye_size//2, y - eye_size//2 - eyelid_height)
+    eyelid_height = 10  # Eyelid curvature adjustment, change this to control the arc
+
+    # Left Eyelid (dynamic polygon)
+    pygame.draw.polygon(screen, (0, 0, 0), [
+        (x - eye_size//2, y - eye_size//2 + eyelid_height),  # Top left
+        (x - pupil_size//2, y - eye_size//2 + eyelid_height),  # Near pupil left
+        (x - pupil_size//2, y - eye_size//2 - eyelid_height),  # Near pupil bottom left
+        (x - eye_size//2, y - eye_size//2 - eyelid_height)   # Bottom left
     ])
     
-    # Right Eyelid
-    pygame.draw.polygon(screen, BLACK, [
-        (x + screen_width//2 - eye_size//2, y - eye_size//2 + eyelid_height),
-        (x + screen_width//2 + eye_size//2, y - eye_size//2 + eyelid_height),
-        (x + screen_width//2 + eye_size//2, y - eye_size//2 - eyelid_height),
-        (x + screen_width//2 - eye_size//2, y - eye_size//2 - eyelid_height)
+    # Right Eyelid (dynamic polygon)
+    pygame.draw.polygon(screen, (0, 0, 0), [
+        (x + screen_width//2 - eye_size//2, y - eye_size//2 + eyelid_height),  # Top right
+        (x + screen_width//2 + pupil_size//2, y - eye_size//2 + eyelid_height),  # Near pupil right
+        (x + screen_width//2 + pupil_size//2, y - eye_size//2 - eyelid_height),  # Near pupil bottom right
+        (x + screen_width//2 - eye_size//2, y - eye_size//2 - eyelid_height)   # Bottom right
     ])
 
 def draw_image(img):
@@ -166,31 +164,6 @@ while running:
             dilate = True
         elif event.button == 5:  # EYELID button (choose correct mapping later)
             blink = True  # Manual blink
-
-   #if joystick.get_numbuttons() > 0:
-
-    # Read POV hat
-    if joystick.get_numhats() > 0:
-        hat_x, hat_y = joystick.get_hat(0)
-        # Map to image numbers
-        if (hat_x, hat_y) == (0, 1):
-            image_number = 1
-        elif (hat_x, hat_y) == (1, 1):
-            image_number = 2
-        elif (hat_x, hat_y) == (1, 0):
-            image_number = 3
-        elif (hat_x, hat_y) == (1, -1):
-            image_number = 4
-        elif (hat_x, hat_y) == (0, -1):
-            image_number = 5
-        elif (hat_x, hat_y) == (-1, -1):
-            image_number = 6
-        elif (hat_x, hat_y) == (-1, 0):
-            image_number = 7
-        elif (hat_x, hat_y) == (-1, 1):
-            image_number = 8
-        else:
-            image_number = 0
 
     # Smooth eye movement
     pupil_x = 0.9 * pupil_x + 0.1 * (target_x + eye_offset_x)
