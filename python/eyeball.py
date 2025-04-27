@@ -85,6 +85,7 @@ while running:
     # Update the display
     pygame.display.flip()
 
+
 # Quit pygame
 pygame.quit()
 sys.exit()
