@@ -2,6 +2,7 @@ Eyes controllernext
 XPOS	Pupil X 	3	SLIDER	y	0	1.0	0.15
 YPOS	Pupil Y 	3	SLIDER	x	0	1.0	0.15
 ZPOS	Brightness 	3	SLIDER	z	0	1.0	0.15
+ZROTATE	Emotion 	3	SLIDER	r	0	1.0	0.15
 EYELID	Eye lid 	1	BUTTON	A	0	0.0	0.0
 A	button A	1	BUTTON	B	0	0.0	0.0
 B	button B	1	BUTTON	C	0	0.0	0.0
