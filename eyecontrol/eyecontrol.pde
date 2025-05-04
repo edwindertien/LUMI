@@ -46,6 +46,7 @@ float rightPupilY = 0;
 float rightPupilSize = 0;
 
 float brightness = 0;
+float emotionslider = 0;
 
 //The image names in the folder that can be activated with the POV hat
 String[] imageNames = {
@@ -100,7 +101,9 @@ public void getUserInput() {
   pupilPosX =   map(gpad.getSlider("XPOS").getValue(), -1, 1, 0, screenWidth/2);
   pupilPosY =   map(gpad.getSlider("YPOS").getValue(), -1, 1, 0, screenHeight);
   brightness =  map(gpad.getSlider("ZPOS").getValue(), -1, 1, 255, 0);
-  
+  emotionslider =  map(gpad.getSlider("ZROTATE").getValue(), -1, 1, -5, 5);
+  emotionState = (int)ABS(emotionslider);
+
   blink = gpad.getButton("EYELID").pressed();
   imageNumber = gpad.getHat("POV").getPos();
   
@@ -265,27 +268,27 @@ public void drawEyes(int x, int y, boolean blink) {
   if (x>(screenWidth/2-eyeSize/2)) x = (screenWidth/2-eyeSize/2);
   if(sndAngry.isPlaying()) {
     fill(255, 0, 0, 155); //for the irismasks according to emotions, but more transparant than the original design. 
-    emotionalState = 4; //angry
+    //emotionalState = 4; //angry
   }
   else if (sndCalculate.isPlaying()) {
     fill(255,255,0,100);
-    emotionalState = 3; //calculating
+    //emotionalState = 3; //calculating
   }
   else if (sndNo.isPlaying()) {
     fill(0,0,255,100);
-    emotionalState = 2; //sad eyes
+    //emotionalState = 2; //sad eyes
   }
   else if (sndYes.isPlaying()) {
     fill(0,255,0,100);
-    emotionalState = 1; //happy eyes
+    //emotionalState = 1; //happy eyes
   }
   else if (sndBreakdown.isPlaying()) {
     fill(0,0,0,100);
-    emotionalState = 5;
+    //emotionalState = 5;
   }
   else {
     fill(0, 255, 100, 0);
-    emotionalState = 0; //default=neutral
+    //emotionalState = 0; //default=neutral
   }
   noStroke();
   if(mode==0) blink = true;
