@@ -1,14 +1,12 @@
 Eyes controllernext
 XPOS	Pupil X 	3	SLIDER	z	0	1.0	0.15
 YPOS	Pupil Y 	3	SLIDER	rz	0	1.0	0.15
-EYELID	Eye lid 	1	BUTTON	4	0	0.0	0.0
+EYELID	Eye lid 	1	BUTTON	11	0	0.0	0.0
 A	button A	1	BUTTON	1	0	0.0	0.0
 B	button B	1	BUTTON	2	0	0.0	0.0
 X	button X	1	BUTTON	0	0	0.0	0.0
 Y	button Y	1	BUTTON	3	0	0.0	0.0
-ALARM	button RT	1	BUTTON	5	0	0.0	0.0
+RT	button RT	1	BUTTON	5	0	0.0	0.0
 RS	button RS	1	BUTTON	7	0	0.0	0.0
 START	button START	1	BUTTON	9	0	0.0	0.0
 BACK	button BACK	1	BUTTON	8	0	0.0	0.0
-POV	button POV	2	HAT	cooliehat: pov	0	0.0	0.0
-DILATE	button DILATE	1	BUTTON	10	0	0.0	0.0

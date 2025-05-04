@@ -32,7 +32,6 @@ int upperValue = eyeSize/2;
 PImage eyeImg;
 
 float pupilPosX, pupilPosY, pupilSize;
-int brightness = 0;
 boolean blink;
 
 
@@ -71,7 +70,6 @@ public void getUserInput() {
   //pupilSize = dilated ? irisSize * 0.6f : irisSize * 0.45f;
   pupilPosX =   map(gpad.getSlider("XPOS").getValue(), -1, 1, 0, screenWidth/2);
   pupilPosY =   map(gpad.getSlider("YPOS").getValue(), -1, 1, 0, screenHeight);
-  brightness =   map(gpad.getSlider("ZPOS").getValue(), -1, 1, 0, 255);
   blink = gpad.getButton("EYELID").pressed();
   if (!sndAlarm.isPlaying() && gpad.getButton("B").pressed() && gpad.getButton("RT").pressed()) {
     println("sound alarm");
@@ -115,7 +113,7 @@ public void getUserInput() {
 float eyeX, prevEyeX, eyeY, prevEyeY;
 int blinkTimer, nextBlinkTime, blinkDuration;
 int eyeTimer, nextEyeTime, eyeOffsetX, eyeOffsetY;
-int mode = 1;
+int mode = 0;
 public void draw() {
   getUserInput(); // Poll the input device
   background(127);
@@ -206,6 +204,4 @@ public void drawEyes(int x, int y, boolean blink) {
   // clean up the bottom bit
   fill(127);
   rect(0, screenHeight, screenWidth, 2*screenHeight);
-  fill(0, brightness);  // white with alpha
-  rect(0, 0, screenWidth, screenheight);
 }
